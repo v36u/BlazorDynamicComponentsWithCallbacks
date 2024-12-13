@@ -1,0 +1,21 @@
+﻿<h3>This is _Role10</h3>
+
+@code {
+  [Parameter]
+  public required Home.OnSubmitForRoleDelegate OnSubmitForRole { get; set; }
+
+  [Parameter]
+  public EventCallback<Home.OnSubmitForRoleDelegate> OnSubmitForRoleChanged { get; set; }
+
+  protected override void OnInitialized()
+  {
+    OnSubmitForRole = (dbContext) =>
+    {
+      // Logic specific to Role 10 -- e.g. save to database
+
+      return "Result from role 10";
+    };
+
+    OnSubmitForRoleChanged.InvokeAsync(OnSubmitForRole);
+  }
+}

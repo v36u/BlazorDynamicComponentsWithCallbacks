@@ -1,0 +1,75 @@
+﻿@page "/"
+@using BlazorDynamicComponentsWithCallbacks.Utils
+
+@{
+  var role = 20;
+
+  var componentName = $"_Role{role}";
+}
+
+<label for="role">Role</label>
+<input type="number" @bind-value="RoleValue" id="role" />
+<button @onclick="OnChangeRoleClick">Change role</button>
+
+<br />
+<br />
+
+@if (ComponentType is not null)
+{
+  var componentParameters = new Dictionary<string, object> {
+    // Normally, we would use the short form `@bind-OnSubmitForRole`, but for dynamic components that does not work, so we have to use the long form
+    { "OnSubmitForRole", OnSubmitForRole },
+    { "OnSubmitForRoleChanged", EventCallback.Factory.Create<OnSubmitForRoleDelegate>(this, OnSubmitForRoleChanged) }
+  };
+  <DynamicComponent Type="@ComponentType" Parameters="componentParameters" />
+}
+
+<br />
+<br />
+
+<button @onclick="OnSubmit">Submit</button>
+<br />
+<p>@Result</p>
+
+@code {
+  public delegate string OnSubmitForRoleDelegate(object dbContext);
+
+  private static OnSubmitForRoleDelegate DefaultOnSubmitForRole = (dbContext) =>
+  {
+    return "Default Value";
+  };
+
+  private OnSubmitForRoleDelegate OnSubmitForRole { get; set; } = DefaultOnSubmitForRole;
+
+  private void OnSubmitForRoleChanged(OnSubmitForRoleDelegate value)
+  {
+    OnSubmitForRole = value;
+  }
+
+  private int RoleValue { get; set; } = 0;
+
+  private string Result { get; set; } = string.Empty;
+
+  private Type? ComponentType { get; set; }
+
+  private void OnChangeRoleClick()
+  {
+    var newComponentName = $"_Role{RoleValue}";
+
+    ComponentType = ReflectionHelpers.ResolveComponent("BlazorDynamicComponentsWithCallbacks.Components.Pages.Roles", newComponentName);
+
+    if (ComponentType is null)
+    {
+      OnSubmitForRole = DefaultOnSubmitForRole;
+    }
+
+    Result = string.Empty;
+  }
+
+  private void OnSubmit()
+  {
+    var dbContext = new object();
+
+    Result = OnSubmitForRole.Invoke(dbContext);
+  }
+}
